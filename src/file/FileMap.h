@@ -45,11 +45,11 @@ public:
 	/**
 	 * @attention lock the Block one by one from left to right
 	 */
-	void insert(IndexType const &key, ValueType const &value);
+	bool insert(IndexType const &key, ValueType const &value);
 	/**
 	 * @attention lock the Block one by one from left to right
 	 */
-	void erase(IndexType const &key, ValueType const &value);
+	bool erase(IndexType const &key, ValueType const &value);
 	/**
 	 * @attention lock the Block one by one from left to right
 	 */
@@ -80,12 +80,12 @@ private:
 	 * @brief insert obj to a certain block numbered `id`.
 	 * @attention do not set `block_lock`, since insert(key,value) have done it.
 	 */
-	void insert(Data const &obj, int id);
+	bool insert(Data const &obj, int id);
 	/**
 	 * @brief erase obj from a certain block numbered `id`.
 	 * @attention will use `block_lock` for the next block when merge.
 	 */
-	void erase(Data const &obj, int id);
+	bool erase(Data const &obj, int id);
 	/**
 	 * @brief read the header of the Block numbered `id`
 	 * @attention use `file_lock`
@@ -119,29 +119,29 @@ typename FileMap<IndexType, ValueType>::Data FileMap<IndexType, ValueType>::read
 }
 
 template <typename IndexType, typename ValueType>
-void FileMap<IndexType, ValueType>::insert(IndexType const &key, ValueType const &value) {
+bool FileMap<IndexType, ValueType>::insert(IndexType const &key, ValueType const &value) {
 	Data obj{key, value};
 	int p = 1;
 	while (p) {
 		std::unique_lock lock(block_lock[p]);
 		NodeHeader header = read_block_header(p);
 		if (!header.next || obj < read_kth_of_node(header.next, 0)) {
-			insert(obj, p);
-			break;
+			return insert(obj, p);
 		}
 		p = header.next;
 	}
+	return false;
 }
 
 template <typename IndexType, typename ValueType>
-void FileMap<IndexType, ValueType>::insert(Data const &obj, int id) {
+bool FileMap<IndexType, ValueType>::insert(Data const &obj, int id) {
 	Node node = this->Base::read(id);
 	auto check_exist = [&obj](Node &node) {
 		auto p = std::lower_bound(node.data, node.data + node.header.size, obj);
 		if (p != node.data + node.header.size && *p == obj) return true;
 		else return false;
 	};
-	if (check_exist(node)) return;
+	if (check_exist(node)) return false;
 	auto insert_node = [&obj](Node &node) {
 		auto p = std::upper_bound(node.data, node.data + node.header.size, obj);
 		for (auto cur = node.data + node.header.size; cur > p; --cur)
@@ -167,29 +167,30 @@ void FileMap<IndexType, ValueType>::insert(Data const &obj, int id) {
 
 	else insert_node(node);
 	this->Base::write(id, node);
+	return true;
 }
 
 
 template <typename IndexType, typename ValueType>
-void FileMap<IndexType, ValueType>::erase(IndexType const &key, ValueType const &value) {
+bool FileMap<IndexType, ValueType>::erase(IndexType const &key, ValueType const &value) {
 	Data obj{key, value};
 	int p = 1;
 	while (p) {
 		std::unique_lock lock(block_lock[p]);
 		NodeHeader header = read_block_header(p);
 		if (!header.next || obj < read_kth_of_node(header.next, 0)) {
-			erase(obj, p);
-			break;
+			return erase(obj, p);
 		}
 		p = header.next;
 	}
+	return false;
 }
 
 template <typename IndexType, typename ValueType>
-void FileMap<IndexType, ValueType>::erase(Data const &obj, int id) {
+bool FileMap<IndexType, ValueType>::erase(Data const &obj, int id) {
 	Node node = this->Base::read(id);
 	auto p = std::lower_bound(node.data, node.data + node.header.size, obj);
-	if (p == node.data + node.header.size || *p != obj) return;
+	if (p == node.data + node.header.size || *p != obj) return false;
 	--node.header.size;
 	while (p < node.data + node.header.size) {
 		*p = *(p + 1);
@@ -204,14 +205,14 @@ void FileMap<IndexType, ValueType>::erase(Data const &obj, int id) {
 				this->file.seekg((node.header.next - 1) * sizeof(Node) + sizeof(NodeHeader));
 				this->file.read(reinterpret_cast<char *>(node.data + node.header.size), next_header.size * sizeof(Data));
 			}
-			this->Base::eraseId(node.header.next);
+			this->Base::erase(node.header.next);
 			node.header.next = next_header.next;
 			node.header.size += next_header.size;
 		}
 	}
 	this->write(id, node);
+	return true;
 }
-
 
 template <typename IndexType, typename ValueType>
 std::vector<ValueType> FileMap<IndexType, ValueType>::find(IndexType const &key) {

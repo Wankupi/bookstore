@@ -4,6 +4,7 @@
 #include <fstream>
 #include <mutex>
 #include <string>
+#include <filesystem>
 
 template <typename Type, bool isTrash = false>
 class DataBase {
@@ -16,31 +17,35 @@ public:
 	}
 	/**
 	 * @brief Insert a Data to a proper place
-	 * @return the id of the place where it's put
+	 * @return the 1-indexed id of the place where it's put
 	 * @attention use `file_lock` and `trash_lock`
 	 */
 	int insert(Type const &);
 	/**
 	 * @brief Read a block of Data from file
+	 * @param id 1-indexed
 	 * @attention use `file_lock`
 	 */
 	Type read(int id);
 	/**
 	 * @brief Write a Data to file
-	 * @param id
+	 * @param id 1-indexed
 	 * @attention ues `file_lock`
 	 */
 	void write(int id, Type const &);
+	/**
+	 * @param id 1-indexed
+	 * @attention just remove the id to recycle, do not clear the data on disk
+	 * @attention use `trash_lock`
+	 */
+	void erase(int id);
 
 protected:
 	/**
+	 * @return the 1-indexed id of a usable place
 	 * @attention use `trash_lock`, do not check `file_lock`, since only insert will call this function
 	 */
 	int newId();
-	/**
-	 * @attention use `trash_lock`
-	 */
-	void eraseId(int id);
 
 protected:
 	std::string filename;
@@ -53,7 +58,13 @@ protected:
 template <typename Type, bool isTrash>
 DataBase<Type, isTrash>::DataBase(const std::string &filename, emptyHook *hook)
 	: filename(filename) {
+	std::filesystem::path path(filename);
+	if (path.has_parent_path()) {
+		std::filesystem::create_directories(path.parent_path());
+	}
 	file.open(filename, std::ios::app);
+	if (!file)
+		throw "Failed to open file.";
 	if (file.tellp() == 0 && hook) hook(file);
 	file.close();
 	file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
@@ -119,7 +130,7 @@ int DataBase<Type, isTrash>::newId() {
 }
 
 template <typename Type, bool isTrash>
-void DataBase<Type, isTrash>::eraseId(int id) {
+void DataBase<Type, isTrash>::erase(int id) {
 	if (!isTrash) return;
 	std::lock_guard lock(trash_lock);
 	trash.seekg(0);

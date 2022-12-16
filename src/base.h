@@ -3,9 +3,9 @@
 #define BOOKSTORE_BASE_H
 
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <string>
-#include <cstring>
 
 template <std::size_t N>
 struct String : public std::array<char, N> {
@@ -13,10 +13,11 @@ struct String : public std::array<char, N> {
 	String(std::string const &str) : String() {
 		memcpy(this->data(), str.data(), std::min(N, str.size()));
 	}
+	String(const char *str) : String(std::string(str)) {}
 	explicit operator std::string() const {
 		if (this->back()) {
 			std::string s{N};
-			 memcpy(s.data(), this->data(), N);
+			memcpy(s.data(), this->data(), N);
 		}
 		else return std::string(this->data());
 	}
@@ -31,4 +32,7 @@ std::ostream &operator<<(std::ostream &os, String<N> const &str) {
 	return os;
 }
 
+struct book_exception : std::exception {
+	const char * what() const noexcept override { return "Invalid.\n"; }
+};
 #endif // BOOKSTORE_BASE_H
