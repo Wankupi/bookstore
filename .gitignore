@@ -1,4 +1,7 @@
+.vscode
+.idea
 /instruction
 /build
-/cmake-debug-build
-/cmake-release-build
+/cmake-build-debug
+/cmake-build-release
+/test
