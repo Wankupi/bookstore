@@ -3,7 +3,7 @@
 Users::Users(const std::string &file_data, const std::string &file_map) : db(file_data), ids(file_map) {
 	constexpr int UUIDroot = 1;
 	if (ids.insert("root", UUIDroot)) {
-		User root{Privilege::admin, String<30>("root"), String<30>("sjtu")};
+		User root{Privilege::admin, String<30>("sjtu")};
 		db.write(UUIDroot, root);
 	}
 }
@@ -13,7 +13,9 @@ UserInfo Users::login(const String<30> &UserID, const String<30> &password, Priv
 	if (v.empty()) return {};
 	int id = v[0];
 	User user = db.read(id);
-	if (privilege > user.privilege || user.password == password) {
+	bool isPassword = password.allzero();
+	if ((isPassword && password == user.password) || (!isPassword && privilege > user.privilege)) {
+		std::lock_guard lock(cnt_lock);
 		++logInCnt[id];
 		return UserInfo{id, user.privilege};
 	}
@@ -21,8 +23,12 @@ UserInfo Users::login(const String<30> &UserID, const String<30> &password, Priv
 }
 
 void Users::logout(int id) {
-	if (--logInCnt[id] < 0)
+	std::lock_guard lock(cnt_lock);
+	int k = --logInCnt[id];
+	if (k < 0)
 		throw std::exception();
+	if (k == 0)
+		logInCnt.erase(id);
 }
 
 int Users::Register(const String<30> &UserID, const String<30> &password, const String<30> &Username) {
@@ -47,7 +53,7 @@ int Users::passwd(const String<30> &UserId, const String<30> &cur_pwd, const Str
 int Users::useradd(const String<30> &UserID, const String<30> &password, Privilege privilege, String<30> Username, Privilege cur_privilege) {
 	if (!ids.find(UserID).empty()) return 0;
 	if (cur_privilege <= privilege) return 0;
-	User user{Privilege(privilege), UserID, password};
+	User user{Privilege(privilege), password};
 	int id = db.insert(user);
 	ids.insert(UserID, id);
 	return id;
@@ -58,8 +64,7 @@ int Users::userdel(const String<30> &UserID, Privilege cur_privilege) {
 	auto v = ids.find(UserID);
 	if (!v.empty()) return 0;
 	int id = v[0];
-	auto p = logInCnt.find(id);
-	if (p != logInCnt.end() && p->second > 0) return 0;
+	if (logInCnt.find(id) != logInCnt.end()) return 0;
 	db.erase(id);
 	ids.erase(UserID, id);
 	return id;

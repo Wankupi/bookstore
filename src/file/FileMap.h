@@ -28,7 +28,7 @@ struct NodeHeader {
 
 template <typename IndexType, typename ValueType>
 struct Node_ {
-	static constexpr int MinBlock = 500;
+	static constexpr int MinBlock = 400;
 	static constexpr int MaxBlock = MinBlock * 2;
 	NodeHeader header;
 	Data_<IndexType, ValueType> data[MaxBlock];
@@ -70,7 +70,7 @@ public:
 
 private:
 	/**
-	 * @brief used for initialize a empty file
+	 * @brief used for initialize an empty file
 	 */
 	static void write_1st_node(std::fstream &fs) {
 		for (int i = 0; i < sizeof(Node); ++i)

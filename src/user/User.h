@@ -4,7 +4,7 @@
 #include "../base.h"
 #include "../file/DataBase.h"
 #include "../file/FileMap.h"
-#include <atomic>
+#include <mutex>
 #pragma pack(push, 1)
 enum class Privilege : char {
 	logout = 0,
@@ -21,8 +21,8 @@ struct UserInfo {
 
 struct User {
 	Privilege privilege;
-	String<30> id;
 	String<30> password;
+	//	String<30> id;
 };
 #pragma pack(pop)
 
@@ -67,7 +67,8 @@ public:
 private:
 	DataBase<User, true> db;
 	FileMap<String<30>, int> ids;
-	std::unordered_map<int, std::atomic_int> logInCnt;
+	std::unordered_map<int, int> logInCnt;
+	std::mutex cnt_lock;
 };
 
 #endif // BOOKSTORE_USER_H

@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include <mutex>
 
 template <std::size_t N>
 struct String : public std::array<char, N> {
@@ -20,6 +21,10 @@ struct String : public std::array<char, N> {
 			memcpy(s.data(), this->data(), N);
 		}
 		else return std::string(this->data());
+	}
+	bool allzero() const {
+		for (int i = 0; i < N; ++i) if ((*this)[i]) return false;
+		return true;
 	}
 };
 
