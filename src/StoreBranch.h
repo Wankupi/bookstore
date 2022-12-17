@@ -2,13 +2,14 @@
 #ifndef BOOKSTORE_STOREBRANCH_H
 #define BOOKSTORE_STOREBRANCH_H
 #include "user/User.h"
+#include "book/Book.h"
 #include <stack>
 #include <unordered_map>
 
 class StoreBranch {
 public:
 	friend int main();
-	StoreBranch(Users &users) : cmd(users) {}
+	StoreBranch(Users &users, Books &books) : users(users), books(books) {}
 	void login(String<30> const &UserID, String<30> const &password);
 	void logout();
 	void Register(String<30> const &UserID, String<30> const &password, String<30> const &Username);
@@ -19,7 +20,8 @@ public:
 private:
 	Privilege currentPrivilege() { return st.empty() ? Privilege::logout : st.top().first.privilege; }
 private:
-	Users &cmd;
+	Users &users;
+	Books &books;
 	std::stack<std::pair<UserInfo, int>> st;
 };
 
