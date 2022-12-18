@@ -8,7 +8,7 @@
 #pragma pack(push, 1)
 struct Book {
 	Book() = default;
-	explicit Book(std::string const &_ISBN) : ISBN(_ISBN) {}
+	explicit Book(String<20> const &_ISBN) : ISBN(_ISBN) {}
 	Book(Book const &) = default;
 	Book(Book &&) = default;
 	String<20> ISBN{};
@@ -102,6 +102,7 @@ private:
 	FileMap<String<60>, int> Authors;
 	FileMap<String<60>, int> Keys;
 	std::unordered_map<int, std::mutex> book_lock;
+	std::mutex cnt_lock;
 };
 
 #endif // BOOKSTORE_BOOK_H

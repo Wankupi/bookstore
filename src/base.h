@@ -14,7 +14,9 @@ struct String : public std::array<char, N> {
 	String(std::string const &str) : String() {
 		memcpy(this->data(), str.data(), std::min(N, str.size()));
 	}
-	String(const char *str) : String(std::string(str)) {}
+	String(const char *str) : String() {
+		memcpy(this->data(), str, std::min(N, strlen(str)));
+	}
 	explicit operator std::string() const {
 		if (this->back()) {
 			std::string s{N};

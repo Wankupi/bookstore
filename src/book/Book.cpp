@@ -72,7 +72,7 @@ BookSearchResult &BookSearchResult::limitAuthor(const String<60> &aur) {
 
 static std::set<std::string> splitKeywords(String<60> const &key) {
 	std::set<std::string> res;
-	for (int l = 0, r = 0; l < key.size() && key[l]; l = r + 1) {
+	for (int l = 0, r; l < key.size() && key[l]; l = r + 1) {
 		r = l;
 		while (r < key.size() && key[r] != '|')
 			++r;
@@ -192,30 +192,38 @@ double Books::buy(const String<20> &ISBN, int quantity) {
 }
 
 int Books::getId(const String<20> &ISBN) {
+	std::lock_guard lock(cnt_lock);
 	auto v = ISBNs.find(ISBN);
-	return v.empty() ? 0 : v.front();
+	if (!v.empty()) return v.front();
+	int id = db.insert(Book(ISBN));
+	ISBNs.insert(ISBN, id);
+	// do not set index of other data
+	return id;
 }
 
 bool Books::modifyApply(int id, const BookModify &modify) {
 	if (modify.Isbn && !ISBNs.find(*modify.Isbn).empty())
 		return false;
+	// because split may throw, so do it before
+	std::set<std::string> keys2;
+	if (modify.Key) keys2 = splitKeywords(*modify.Key);
 	std::lock_guard lock(book_lock[id]);
 	Book book = db.read(id);
 	if (modify.Isbn) {
+		std::lock_guard lock_isbn(cnt_lock);
 		ISBNs.erase(book.ISBN, id);
-		ISBNs.erase(book.ISBN = *modify.Isbn, id);
+		ISBNs.insert(book.ISBN = *modify.Isbn, id);
 	}
 	if (modify.Name) {
-		Names.erase(book.name, id);
+		if (!book.name.allzero()) Names.erase(book.name, id);
 		Names.insert(book.name = *modify.Name, id);
 	}
 	if (modify.Author) {
-		Authors.erase(book.author, id);
+		if (!book.name.allzero()) Authors.erase(book.author, id);
 		Authors.insert(book.author = *modify.Author, id);
 	}
 	if (modify.Key) {
-		auto keys1 = splitKeywords(book.keyword),
-			 keys2 = splitKeywords(*modify.Key);
+		auto keys1 = splitKeywords(book.keyword);
 		for (auto &s : keys1) {
 			if (keys2.find(s) != keys2.end())
 				Keys.erase(s, id);
@@ -228,6 +236,7 @@ bool Books::modifyApply(int id, const BookModify &modify) {
 	}
 	if (modify.Price) book.price = *modify.Price;
 	db.write(id, book);
+	return true;
 }
 
 int Books::Import(int id, int quantity, double total_cost) {
