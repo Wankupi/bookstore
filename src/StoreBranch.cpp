@@ -8,6 +8,7 @@ void StoreBranch::login(const String<30> &UserID, const String<30> &password) {
 
 void StoreBranch::logout() {
 	if (st.empty()) throw book_exception();
+	users.logout(st.back().first.id);
 	st.pop_back();
 }
 
