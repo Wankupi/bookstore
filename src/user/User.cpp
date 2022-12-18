@@ -13,7 +13,7 @@ UserInfo Users::login(const String<30> &UserID, const String<30> &password, Priv
 	if (v.empty()) return {};
 	int id = v[0];
 	User user = db.read(id);
-	bool isPassword = password.allzero();
+	bool isPassword = !password.allzero();
 	if ((isPassword && password == user.password) || (!isPassword && privilege > user.privilege)) {
 		std::lock_guard lock(cnt_lock);
 		++logInCnt[id];
@@ -62,7 +62,7 @@ int Users::useradd(const String<30> &UserID, const String<30> &password, Privile
 int Users::userdel(const String<30> &UserID, Privilege cur_privilege) {
 	if (cur_privilege < Privilege::admin) return 0;
 	auto v = ids.find(UserID);
-	if (!v.empty()) return 0;
+	if (v.empty()) return 0;
 	int id = v[0];
 	if (logInCnt.find(id) != logInCnt.end()) return 0;
 	db.erase(id);

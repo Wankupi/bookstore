@@ -5,8 +5,8 @@
 #include <array>
 #include <cstring>
 #include <iostream>
-#include <string>
 #include <mutex>
+#include <string>
 
 template <std::size_t N>
 struct String : public std::array<char, N> {
@@ -21,11 +21,13 @@ struct String : public std::array<char, N> {
 		if (this->back()) {
 			std::string s{N};
 			memcpy(s.data(), this->data(), N);
+			return s;
 		}
 		else return std::string(this->data());
 	}
 	bool allzero() const {
-		for (int i = 0; i < N; ++i) if ((*this)[i]) return false;
+		for (int i = 0; i < N; ++i)
+			if ((*this)[i]) return false;
 		return true;
 	}
 };
@@ -40,6 +42,14 @@ std::ostream &operator<<(std::ostream &os, String<N> const &str) {
 }
 
 struct book_exception : std::exception {
-	const char * what() const noexcept override { return "Invalid.\n"; }
+	book_exception() : msg("Invalid\n") {}
+	book_exception(const char *msg) : msg(msg) {}
+	const char *msg;
+	const char *what() const noexcept override { return msg; }
 };
+
+struct param_exception : book_exception {
+	param_exception() : book_exception("invalid params") {}
+};
+
 #endif // BOOKSTORE_BASE_H

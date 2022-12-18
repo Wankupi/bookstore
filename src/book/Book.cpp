@@ -76,9 +76,9 @@ static std::set<std::string> splitKeywords(String<60> const &key) {
 		r = l;
 		while (r < key.size() && key[r] != '|')
 			++r;
-		if (r - l == 0) throw book_exception();
+		if (r - l == 0) throw book_exception("keywords - empty");
 		auto ins_res = res.emplace(key.data() + l, r - l);
-		if (ins_res.second) throw book_exception();
+		if (ins_res.second) throw book_exception("keywords - repeat");
 	}
 	return res;
 }
@@ -126,31 +126,31 @@ BookModify::~BookModify() {
 }
 
 BookModify &BookModify::modifyISBN(const String<20> &ISBN) {
-	if (Isbn) throw book_exception();
+	if (Isbn) throw book_exception("modify - repeat");
 	Isbn = new String<20>(ISBN);
 	return *this;
 }
 
 BookModify &BookModify::modifyName(const String<60> &name) {
-	if (Name) throw book_exception();
+	if (Name) throw book_exception("modify - repeat");
 	Name = new String<60>(name);
 	return *this;
 }
 
 BookModify &BookModify::modifyAuthor(const String<60> &author) {
-	if (Author) throw book_exception();
+	if (Author) throw book_exception("modify - repeat");
 	Author = new String<60>(author);
 	return *this;
 }
 
 BookModify &BookModify::modifyKey(const String<60> &key) {
-	if (Key) throw book_exception();
+	if (Key) throw book_exception("modify - repeat");
 	Key = new String<60>(key);
 	return *this;
 }
 
 BookModify &BookModify::modifyPrice(double price) {
-	if (Price) throw book_exception();
+	if (Price) throw book_exception("modify - repeat");
 	Price = new double(price);
 	return *this;
 }
