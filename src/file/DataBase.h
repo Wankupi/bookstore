@@ -39,7 +39,11 @@ public:
 	 * @attention use `trash_lock`
 	 */
 	void erase(int id);
-
+	/**
+	 * @return the number of datas in the file
+	 * @attention use `file_lock`
+	 */
+	int size();
 protected:
 	/**
 	 * @return the 1-indexed id of a usable place
@@ -107,11 +111,11 @@ void DataBase<Type, isTrash>::write(int id, const Type &data) {
 
 template <typename Type, bool isTrash>
 int DataBase<Type, isTrash>::newId() {
-	auto size = [&file = this->file]() {
+	auto size_nolock = [&file = this->file]() {
 		file.seekg(0, std::ios::end);
 		return file.tellg() / sizeof(Type);
 	};
-	if (!isTrash) return size() + 1;
+	if (!isTrash) return size_nolock() + 1;
 	std::lock_guard lock(trash_lock);
 	int id = 0;
 	trash.seekg(0);
@@ -125,7 +129,7 @@ int DataBase<Type, isTrash>::newId() {
 		trash.write(reinterpret_cast<char *>(&count_trash), sizeof(int));
 	}
 	else
-		id = size() + 1;
+		id = size_nolock() + 1;
 	return id;
 }
 
@@ -141,6 +145,13 @@ void DataBase<Type, isTrash>::erase(int id) {
 	trash.write(reinterpret_cast<char *>(&id), sizeof(int));
 	trash.seekg(0);
 	trash.write(reinterpret_cast<char *>(&count_trash), sizeof(int));
+}
+
+template <typename Type, bool isTrash>
+int DataBase<Type, isTrash>::size() {
+	std::lock_guard lock(file_lock);
+	file.seekg(0, std::ios::end);
+	return file.tellg() / sizeof(Type);
 }
 
 #endif // BOOKSTORE_DATABASE_H

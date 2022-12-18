@@ -99,6 +99,14 @@ BookSearchResult &BookSearchResult::limitKey(const String<60> &key) {
 	return *this;
 }
 
+void BookSearchResult::for_each(void (*func)(Book const &)) {
+	if (unset)
+		books->for_each(func);
+	else {
+		for (auto const &book : res)
+			func(book);
+	}
+}
 
 BookModify::BookModify(BookModify &&rhs) noexcept
 	: BookModify() {
@@ -184,10 +192,16 @@ BookSearchResult Books::Query() {
 	return BookSearchResult{this};
 }
 
+void Books::for_each(void (*func)(Book const &)) {
+	int n = db.size();
+	for (int i = 0; i < n; ++i)
+		func(db.read(i));
+}
+
 double Books::buy(const String<20> &ISBN, int quantity) {
 	if (quantity <= 0) return -1;
 	int id = getId(ISBN);
-	if (!id) return 0;
+	if (!id) return -1;
 	return db.buy(id, quantity);
 }
 

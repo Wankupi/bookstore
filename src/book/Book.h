@@ -5,10 +5,11 @@
 #include "../file/FileMap.h"
 #include <set>
 
+;
 #pragma pack(push, 1)
 struct Book {
 	Book() = default;
-	explicit Book(String<20> const &_ISBN) : ISBN(_ISBN) {}
+	explicit Book(String<20> const &ISBN) : ISBN(ISBN) {}
 	Book(Book const &) = default;
 	Book(Book &&) = default;
 	String<20> ISBN{};
@@ -28,7 +29,17 @@ std::ostream &operator<<(std::ostream &os, Book const &book);
 class BookData : public DataBase<Book, false> {
 public:
 	using DataBase<Book, false>::DataBase;
+	/**
+	 * @param id
+	 * @param count the number of books to buy. do no check `count > 0`.
+	 * @return the cost to buy or -1 if failed.
+	 */
 	double buy(int id, int count);
+	/**
+	 * @param id
+	 * @param count the number of books to import. do no check `count > 0`.
+	 * @return the quantity of books after import.
+	 */
 	int Import(int id, int count);
 };
 
@@ -45,6 +56,7 @@ public:
 	BookSearchResult &limitKey(String<60> const &key);
 	auto begin() { return res.begin(); }
 	auto end() { return res.end(); }
+	void for_each(void (*)(Book const &));
 private:
 	explicit BookSearchResult(Books *books) : books(books), unset(true) {}
 	BookSearchResult() : books(nullptr), unset(false) {}
@@ -88,11 +100,30 @@ public:
 	BookSearchResult findName(String<60> const &name);
 	BookSearchResult findAuthor(String<60> const &author);
 	BookSearchResult findKey(String<60> const &key);
+	/**
+	 * @return a operator object to do queries.
+	 */
 	BookSearchResult Query();
-
+	void for_each(void (*)(Book const &));
+	/**
+	 * @return the cost to buy these books. -1 if failed.
+	 */
 	double buy(String<20> const &ISBN, int quantity);
+	/**
+	 * @return id of the book. If not found then create a new book with ISBN.
+	 */
 	int getId(String<20> const &ISBN);
+	/**
+	 * @return whether modify sucessfully.
+	 * @attention it will fail when new_isbn already exists ( even if same with itself )
+	 * or keywords has repeat words.
+	 */
 	bool modifyApply(int id, BookModify const &modify);
+	/**
+	 * @return the quantity of books after import. 0 if failed.
+	 * @attention it will fail when number is not a positive integer
+	 * or total_cost is not positive real number.
+	 */
 	int Import(int id, int number, double total_cost);
 
 private:
