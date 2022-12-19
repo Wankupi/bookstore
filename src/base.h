@@ -19,7 +19,7 @@ struct String : public std::array<char, N> {
 	}
 	explicit operator std::string() const {
 		if (this->back()) {
-			std::string s{N};
+			std::string s(N, 0);
 			memcpy(s.data(), this->data(), N);
 			return s;
 		}

@@ -1,5 +1,5 @@
 #include "InstanceDaemon.h"
-#include "StoreBranch.h"
+#include "store/StoreBranch.h"
 #include <iostream>
 InstanceDaemon instanceDaemon("running.status");
 

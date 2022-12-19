@@ -1,9 +1,9 @@
 #pragma once
 #ifndef BOOKSTORE_STOREBRANCH_H
 #define BOOKSTORE_STOREBRANCH_H
-#include "book/Book.h"
-#include "finance/Finance.h"
-#include "user/User.h"
+#include "../book/Book.h"
+#include "../finance/Finance.h"
+#include "../user/User.h"
 #include <unordered_map>
 #include <vector>
 
