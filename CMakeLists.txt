@@ -9,8 +9,12 @@ include_directories(
 )
 
 set(src_files
+        src/user/User.cpp
+        src/book/Book.cpp
+        src/finance/Finance.cpp
+        src/StoreBranch.cpp
         src/main.cpp
-        src/user.cpp src/user.h)
+        )
 
 add_executable(code ${src_files})
 

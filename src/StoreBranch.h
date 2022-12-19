@@ -1,15 +1,17 @@
 #pragma once
 #ifndef BOOKSTORE_STOREBRANCH_H
 #define BOOKSTORE_STOREBRANCH_H
-#include "user/User.h"
 #include "book/Book.h"
-#include <vector>
+#include "finance/Finance.h"
+#include "user/User.h"
 #include <unordered_map>
+#include <vector>
 
 class StoreBranch {
 public:
 	friend int main();
-	StoreBranch(Users &users, Books &books) : users(users), books(books) {}
+	StoreBranch(Users &users, Books &books, Finance &finance) : users(users), books(books), finance(finance) {}
+	~StoreBranch();
 	void login(String<30> const &UserID, String<30> const &password);
 	void logout();
 	void Register(String<30> const &UserID, String<30> const &password, String<30> const &Username);
@@ -18,16 +20,20 @@ public:
 	void userdel(String<30> const &UserID);
 
 	BookSearchResult show();
-	void buy(String<20> const &ISBN, int quantity);
+	double buy(String<20> const &ISBN, int quantity);
 	void select(String<20> const &ISBN);
 	void modify(BookModify const &modify);
 	void Import(int quantity, double total_cost);
 
+	std::pair<double, double> show_finance();
+	std::pair<double, double> show_finance(int count);
 private:
 	Privilege currentPrivilege() { return st.empty() ? Privilege::logout : st.back().first.privilege; }
+
 private:
 	Users &users;
 	Books &books;
+	Finance &finance;
 	std::vector<std::pair<UserInfo, int>> st;
 };
 

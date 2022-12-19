@@ -5,16 +5,23 @@ std::ostream &operator<<(std::ostream &os, Book const &book) {
 	return os << book.ISBN << '\t' << book.name << '\t' << book.author << '\t' << book.keyword << '\t' << book.price << '\t' << book.quantity << '\n';
 }
 
+#pragma pack(push, 1)
+struct CntAndPrice {
+	int count;
+	double price;
+};
+#pragma pack(pop)
+
 double BookData::buy(int id, int count) {
-	std::pair<int, double> data;
+	CntAndPrice data{};
 	std::lock_guard lock(file_lock);
 	file.seekg((id - 1) * sizeof(Book) + offsetof(Book, quantity));
 	file.read(reinterpret_cast<char *>(&data), sizeof(data));
-	data.first -= count;
-	if (data.first < 0) return -1;
+	data.count -= count;
+	if (data.count < 0) return -1;
 	file.seekg((id - 1) * sizeof(Book) + offsetof(Book, quantity));
 	file.write(reinterpret_cast<char *>(&data), sizeof(int));
-	return count * data.second;
+	return count * data.price;
 }
 
 int BookData::Import(int id, int count) {
@@ -209,9 +216,9 @@ void Books::for_each(void (*func)(Book const &), void (*emptyFun)()) {
 
 double Books::buy(const String<20> &ISBN, int quantity) {
 	if (quantity <= 0) return -1;
-	int id = getId(ISBN);
-	if (!id) return -1;
-	return db.buy(id, quantity);
+	auto v = ISBNs.find(ISBN);
+	if (v.empty()) return -1;
+	return db.buy(v[0], quantity);
 }
 
 int Books::getId(const String<20> &ISBN) {

@@ -38,12 +38,14 @@ BookSearchResult StoreBranch::show() {
 	return books.Query();
 }
 
-void StoreBranch::buy(String<20> const &ISBN, int quantity) {
+double StoreBranch::buy(String<20> const &ISBN, int quantity) {
 	if (currentPrivilege() < Privilege::customer)
 		throw book_exception("buy - not enough privilege");
 	if (quantity <= 0) throw book_exception("buy - quantity <= 0");
 	double cost = books.buy(ISBN, quantity);
 	if (cost < 0) throw book_exception("buy - failed");
+	finance.log_buy(cost);
+	return cost;
 }
 
 void StoreBranch::select(String<20> const &ISBN) {
@@ -69,4 +71,26 @@ void StoreBranch::Import(int quantity, double total_cost) {
 	int count_after_import = books.Import(st.back().second, quantity, total_cost);
 	if (count_after_import == 0)
 		throw book_exception("import - failed");
+	finance.log_import(total_cost);
+}
+
+std::pair<double, double> StoreBranch::show_finance() {
+	if (currentPrivilege() < Privilege::admin)
+		throw book_exception("show finance - not enough privilege");
+	return finance.show();
+}
+
+std::pair<double, double> StoreBranch::show_finance(int count) {
+	if (currentPrivilege() < Privilege::admin)
+		throw book_exception("show finance - not enough privilege");
+	auto r = finance.show(count);
+	if (r.first < 0) throw book_exception("show finance - failed");
+	return r;
+}
+
+StoreBranch::~StoreBranch() {
+	while (!st.empty()) {
+		users.logout(st.back().first.id);
+		st.pop_back();
+	}
 }
