@@ -41,7 +41,7 @@ BookSearchResult StoreBranch::show() {
 double StoreBranch::buy(String<20> const &ISBN, int quantity) {
 	if (currentPrivilege() < Privilege::customer)
 		throw book_exception("buy - not enough privilege");
-	if (quantity <= 0) throw book_exception("buy - quantity <= 0");
+	if (quantity < 0) throw book_exception("buy - quantity <= 0");
 	double cost = books.buy(ISBN, quantity);
 	if (cost < 0) throw book_exception("buy - failed");
 	finance.log_buy(cost);
