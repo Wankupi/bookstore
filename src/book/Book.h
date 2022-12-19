@@ -24,8 +24,6 @@ struct Book {
 
 std::ostream &operator<<(std::ostream &os, Book const &book);
 
-
-
 class BookData : public DataBase<Book, false> {
 public:
 	using DataBase<Book, false>::DataBase;
@@ -43,8 +41,6 @@ public:
 	int Import(int id, int count);
 };
 
-
-
 class Books;
 class BookSearchResult {
 	friend class Books;
@@ -56,17 +52,17 @@ public:
 	BookSearchResult &limitKey(String<60> const &key);
 	auto begin() { return res.begin(); }
 	auto end() { return res.end(); }
-	void for_each(void (*)(Book const &));
+	void for_each(void (*)(Book const &), void (*)());
+
 private:
 	explicit BookSearchResult(Books *books) : books(books), unset(true) {}
 	BookSearchResult() : books(nullptr), unset(false) {}
+
 private:
 	Books *books;
 	bool unset;
 	std::set<Book> res;
 };
-
-
 
 class BookModify {
 	friend class Books;
@@ -90,8 +86,6 @@ private:
 	double *Price = nullptr;
 };
 
-
-
 class Books {
 public:
 	Books(std::string const &file_book, std::string const &file_ISBN, std::string const &file_Name, std::string const &file_Author, std::string const &file_key)
@@ -104,7 +98,8 @@ public:
 	 * @return a operator object to do queries.
 	 */
 	BookSearchResult Query();
-	void for_each(void (*)(Book const &));
+	BookSearchResult findAll();
+	void for_each(void (*)(Book const &), void (*)());
 	/**
 	 * @return the cost to buy these books. -1 if failed.
 	 */

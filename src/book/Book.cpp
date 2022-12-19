@@ -70,15 +70,15 @@ BookSearchResult &BookSearchResult::limitAuthor(const String<60> &aur) {
 	return *this;
 }
 
-static std::set<std::string> splitKeywords(String<60> const &key) {
+std::set<std::string> splitKeywords(String<60> const &key) {
 	std::set<std::string> res;
 	for (int l = 0, r; l < key.size() && key[l]; l = r + 1) {
 		r = l;
-		while (r < key.size() && key[r] != '|')
+		while (r < key.size() && key[r] && key[r] != '|')
 			++r;
 		if (r - l == 0) throw book_exception("keywords - empty");
 		auto ins_res = res.emplace(key.data() + l, r - l);
-		if (ins_res.second) throw book_exception("keywords - repeat");
+		if (!ins_res.second) throw book_exception("keywords - repeat");
 	}
 	return res;
 }
@@ -99,13 +99,13 @@ BookSearchResult &BookSearchResult::limitKey(const String<60> &key) {
 	return *this;
 }
 
-void BookSearchResult::for_each(void (*func)(Book const &)) {
+void BookSearchResult::for_each(void (*func)(Book const &), void (*emptyFun)()) {
 	if (unset)
-		books->for_each(func);
-	else {
-		for (auto const &book : res)
-			func(book);
-	}
+		res = books->findAll().res;
+	for (auto const &book : res)
+		func(book);
+	if (res.empty())
+		emptyFun();
 }
 
 BookModify::BookModify(BookModify &&rhs) noexcept
@@ -192,10 +192,19 @@ BookSearchResult Books::Query() {
 	return BookSearchResult{this};
 }
 
-void Books::for_each(void (*func)(Book const &)) {
+BookSearchResult Books::findAll() {
 	int n = db.size();
-	for (int i = 0; i < n; ++i)
+	BookSearchResult ret;
+	for (int i = 1; i <= n; ++i)
+		ret.res.emplace(db.read(i));
+	return ret;
+}
+
+void Books::for_each(void (*func)(Book const &), void (*emptyFun)()) {
+	int n = db.size();
+	for (int i = 1; i <= n; ++i)
 		func(db.read(i));
+	if (n == 0) emptyFun();
 }
 
 double Books::buy(const String<20> &ISBN, int quantity) {
@@ -239,11 +248,11 @@ bool Books::modifyApply(int id, const BookModify &modify) {
 	if (modify.Key) {
 		auto keys1 = splitKeywords(book.keyword);
 		for (auto &s : keys1) {
-			if (keys2.find(s) != keys2.end())
+			if (keys2.find(s) == keys2.end())
 				Keys.erase(s, id);
 		}
 		for (auto &s : keys2) {
-			if (keys1.find(s) != keys1.end())
+			if (keys1.find(s) == keys1.end())
 				Keys.insert(s, id);
 		}
 		book.keyword = *modify.Key;
