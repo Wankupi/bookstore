@@ -156,9 +156,6 @@ int main() {
 						break;
 					else if (argv[0] == "log" && argv.size() == 1) {
 					}
-					else if (argv[0] == "who") {
-						std::cout << sb.st.back().first.id << ' ' << int(sb.st.back().first.privilege) << std::endl;
-					}
 					else
 						throw param_exception();
 				} catch (book_exception const &be) {

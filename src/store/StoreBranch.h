@@ -9,7 +9,6 @@
 
 class StoreBranch {
 public:
-	friend int main();
 	StoreBranch(Users &users, Books &books, Finance &finance) : users(users), books(books), finance(finance) {}
 	~StoreBranch();
 	void login(String<30> const &UserID, String<30> const &password);
