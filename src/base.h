@@ -11,6 +11,9 @@
 template <std::size_t N>
 struct String : public std::array<char, N> {
 	using std::array<char, N>::array;
+	String() {
+		memset(this->data(), 0, N);
+	}
 	String(std::string const &str) : String() {
 		memcpy(this->data(), str.data(), std::min(N, str.size()));
 	}
