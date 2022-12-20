@@ -41,9 +41,9 @@ int main() {
 	else {
 		try {
 			std::cout << std::fixed << std::setprecision(2);
-			Users users("users/users.db", "users/users.idx");
-			Books books("book/books.db", "book/ISBN.idx", "book/Name.idx", "book/author.idx", "book/key.idx");
-			Finance finance("pay.log");
+			Users users("data/users/users.db", "data/users/users.idx");
+			Books books("data/book/books.db", "data/book/ISBN.idx", "data/book/Name.idx", "data/book/author.idx", "data/book/key.idx");
+			Finance finance("data/pay.log");
 			StoreBranch sb(users, books, finance);
 			std::string cmd;
 			while (std::getline(std::cin, cmd)) {
