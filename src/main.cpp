@@ -79,7 +79,7 @@ int main() {
 						if (argv.size() != 2) throw param_exception();
 						sb.userdel(argv[1]);
 					}
-					else if (argv.size() >= 2 && argv[0] == "show" && (argv[1] == "Finance" || argv[1] == "finance")) {
+					else if (argv.size() >= 2 && argv[0] == "show" && argv[1] == "finance") {
 						if (argv.size() > 3) throw param_exception();
 						std::pair<double, double> res;
 						if (argv.size() == 3) {
@@ -110,6 +110,7 @@ int main() {
 								sql.limitAuthor(pr.second);
 							else if (pr.first == "keyword")
 								sql.limitKey(pr.second);
+							else throw param_exception();
 						}
 						sql.for_each(printBook, printBookNothing);
 					}
@@ -125,6 +126,7 @@ int main() {
 						sb.select(argv[1]);
 					}
 					else if (argv[0] == "modify") {
+						if (argv.size() == 1) throw param_exception();
 						BookModify bm;
 						for (size_t i = 1; i < argv.size(); ++i) {
 							auto pr = splitKeyValue(argv[i]);
@@ -141,6 +143,7 @@ int main() {
 									throw book_exception("-key=value param wrong");
 								bm.modifyPrice(std::stod(pr.second));
 							}
+							else throw param_exception();
 						}
 						sb.modify(bm);
 					}
@@ -152,13 +155,15 @@ int main() {
 							throw param_exception();
 						sb.Import(std::stoi(argv[1]), std::stod(argv[2]));
 					}
-					else if (argv[0] == "quit" || argv[0] == "exit")
+					else if (argv[0] == "quit" || argv[0] == "exit") {
+						if (argv.size() > 1) throw param_exception();
 						break;
+					}
 					else if (argv[0] == "log" && argv.size() == 1) {
 					}
 					else
 						throw param_exception();
-				} catch (book_exception const &be) {
+				} catch (...) {
 					std::cout << "Invalid\n";
 					// std::cerr << be.what() << std::endl;
 				}
