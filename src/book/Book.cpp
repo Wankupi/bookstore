@@ -215,7 +215,7 @@ void Books::for_each(void (*func)(Book const &), void (*emptyFun)()) {
 }
 
 double Books::buy(const String<20> &ISBN, int quantity) {
-	if (quantity < 0) return -1;
+	if (quantity <= 0) return -1;
 	auto v = ISBNs.find(ISBN);
 	if (v.empty()) return -1;
 	return db.buy(v[0], quantity);
