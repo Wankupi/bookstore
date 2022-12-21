@@ -249,7 +249,7 @@ bool Books::modifyApply(int id, const BookModify &modify) {
 		Names.insert(book.name = *modify.Name, id);
 	}
 	if (modify.Author) {
-		if (!book.name.allzero()) Authors.erase(book.author, id);
+		if (!book.author.allzero()) Authors.erase(book.author, id);
 		Authors.insert(book.author = *modify.Author, id);
 	}
 	if (modify.Key) {

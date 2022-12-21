@@ -7,7 +7,8 @@ void StoreBranch::login(const String<30> &UserID, const String<30> &password) {
 }
 
 void StoreBranch::logout() {
-	if (st.empty()) throw book_exception("logout - no user logged in");
+	if (currentPrivilege() < Privilege::customer)
+		throw book_exception("logout - not enough privilege");
 	users.logout(st.back().first.id);
 	st.pop_back();
 }
@@ -18,16 +19,22 @@ void StoreBranch::Register(const String<30> &UserID, const String<30> &password,
 }
 
 void StoreBranch::passwd(const String<30> &UserId, const String<30> &cur_pwd, const String<30> &new_pwd) {
+	if (currentPrivilege() < Privilege::customer)
+		throw book_exception("passwd - not enough privilege");
 	if (!users.passwd(UserId, cur_pwd, new_pwd, currentPrivilege()))
 		throw book_exception("passwd - failed");
 }
 
 void StoreBranch::useradd(const String<30> &UserID, const String<30> &password, Privilege privilege, String<30> Username) {
+	if (currentPrivilege() < Privilege::staff)
+		throw book_exception("useradd - not enough privilege");
 	if (!users.useradd(UserID, password, privilege, Username, currentPrivilege()))
 		throw book_exception("useradd - failed");
 }
 
 void StoreBranch::userdel(const String<30> &UserID) {
+	if (currentPrivilege() < Privilege::admin)
+		throw book_exception("userdel - not enough privilege");
 	if (!users.userdel(UserID, currentPrivilege()))
 		throw book_exception("userdel - failed");
 }

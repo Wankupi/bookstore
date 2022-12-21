@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <shared_mutex>
 #include <unordered_map>
+#include <cstring>
 
 namespace kupi {
 
