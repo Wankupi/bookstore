@@ -22,7 +22,8 @@ std::pair<std::string, std::string> splitKeyValue(std::string const &s) {
 		value.pop_back();
 		value.erase(value.begin());
 	}
-	if (value.size() == 0) throw book_exception("-key=value param wrong");
+	if (value.empty()) throw book_exception("-key=value param wrong");
+	if (value.length() > 60 || (key == "ISBN" && value.length() > 20) || (key == "price" && value.length() > 13)) throw param_exception();
 	return {key, value};
 }
 
@@ -47,12 +48,24 @@ int main() {
 			StoreBranch sb(users, books, finance);
 			std::string cmd;
 			while (std::getline(std::cin, cmd)) {
+				static int line_cnt = 0;
+				if (++line_cnt == 660) {
+//					std::cout << "--------------------------" << std::endl;
+				}
 				auto argv = splitCommand(std::move(cmd));
 				if (argv.empty()) continue;
 				try {
 					if (argv[0] == "su") {
-						if (argv.size() == 2) sb.login(argv[1], {});
-						else if (argv.size() == 3) sb.login(argv[1], argv[2]);
+						if (argv.size() == 2) {
+							if (argv[1].length() > 30)
+								throw param_exception();
+							sb.login(argv[1], {});
+						}
+						else if (argv.size() == 3) {
+							if (argv[1].length() > 30 || argv[2].length() > 30)
+								throw param_exception();
+							sb.login(argv[1], argv[2]);
+						}
 						else throw param_exception();
 					}
 					else if (argv[0] == "logout") {
@@ -64,26 +77,34 @@ int main() {
 						sb.Register(argv[1], argv[2], argv[3]);
 					}
 					else if (argv[0] == "passwd") {
+						if (argv.size() >= 3) {
+							if (argv[1].length() > 30 || argv[2].length() > 30)
+								throw param_exception();
+							if (argv.size() >= 4 && argv[3].length() > 30)
+								throw param_exception();
+						}
 						if (argv.size() == 3) sb.passwd(argv[1], {}, argv[2]);
 						else if (argv.size() == 4) sb.passwd(argv[1], argv[2], argv[3]);
 						else throw param_exception();
 					}
 					else if (argv[0] == "useradd") {
 						if (argv.size() != 5) throw param_exception();
-						if (argv[3].size() != 1) throw param_exception();
+
+						if (argv[1].length() > 30 || argv[2].length() > 30 || argv[3].size() != 1 || argv[4].length() > 30)
+							throw param_exception();
 						int p = argv[3][0] - '0';
 						if (p != 1 && p != 3) throw param_exception();
 						sb.useradd(argv[1], argv[2], Privilege(p), argv[4]);
 					}
 					else if (argv[0] == "delete") {
-						if (argv.size() != 2) throw param_exception();
+						if (argv.size() != 2 || argv[1].length() > 30) throw param_exception();
 						sb.userdel(argv[1]);
 					}
 					else if (argv.size() >= 2 && argv[0] == "show" && argv[1] == "finance") {
 						if (argv.size() > 3) throw param_exception();
 						std::pair<double, double> res;
 						if (argv.size() == 3) {
-							if (argv[2].find_first_not_of("0123456789") != std::string::npos)
+							if (argv[2].find_first_not_of("0123456789") != std::string::npos || argv[2].length() > 10)
 								throw param_exception();
 							int count = std::stoi(argv[2]);
 							if (count == 0) std::cout << std::endl;
@@ -116,13 +137,15 @@ int main() {
 					}
 					else if (argv[0] == "buy") {
 						if (argv.size() != 3) throw param_exception();
-						if (argv[2].find_first_not_of("0123456789") != std::string::npos)
+						if (argv[1].length() > 20) throw param_exception();
+						if (argv[2].length() > 10 || argv[2].find_first_not_of("0123456789") != std::string::npos)
 							throw param_exception();
 						double cost = sb.buy(argv[1], std::stoi(argv[2]));
 						std::cout << cost << std::endl;
 					}
 					else if (argv[0] == "select") {
 						if (argv.size() != 2) throw param_exception();
+						if (argv[1].length() > 20) throw param_exception();
 						sb.select(argv[1]);
 					}
 					else if (argv[0] == "modify") {
@@ -149,9 +172,9 @@ int main() {
 					}
 					else if (argv[0] == "import") {
 						if (argv.size() != 3) throw param_exception();
-						if (argv[1].find_first_not_of("0123456789") != std::string::npos)
+						if (argv[1].length() > 10 || argv[1].find_first_not_of("0123456789") != std::string::npos)
 							throw param_exception();
-						if (argv[2].find_first_not_of("0123456789.") != std::string::npos)
+						if (argv[2].length() > 13 || argv[2].find_first_not_of("0123456789.") != std::string::npos)
 							throw param_exception();
 						sb.Import(std::stoi(argv[1]), std::stod(argv[2]));
 					}
