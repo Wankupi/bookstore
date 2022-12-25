@@ -9,6 +9,7 @@ set(src_files
         src/book/Book.cpp
         src/finance/Finance.cpp
         src/store/StoreBranch.cpp
+        src/lexer/BookStoreLexer.cpp
         src/main.cpp
         )
 
