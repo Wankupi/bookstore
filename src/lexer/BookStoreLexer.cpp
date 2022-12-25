@@ -50,6 +50,7 @@ static void check_ISBN(std::string const &str) {
 }
 
 static void check_name_author_keyword(std::string const &str) {
+	if (str.empty()) throw book_exception("empty string");
 	if (str.length() > 60) throw book_exception("string is too long");
 	for (auto c : str)
 		if (isspace(c) || c == '\"')
@@ -78,13 +79,15 @@ static double check_price_cost(std::string const &str) {
 			if (dot) throw book_exception("two dots");
 			dot = true;
 		}
-		else {
+		else if ('0' <= c && c <= '9') {
 			if (dot)
 				x += (c - '0') * (xi /= 10);
 			else
 				x = x * 10 + (c - '0');
 		}
+		else throw book_exception("not number character");
 	}
+	if (x == 0) throw book_exception("price/cost equals to 0");
 	return x;
 }
 

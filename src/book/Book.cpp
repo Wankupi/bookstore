@@ -79,6 +79,9 @@ BookSearchResult &BookSearchResult::limitAuthor(const String<60> &aur) {
 
 std::set<std::string> splitKeywords(String<60> const &key) {
 	std::set<std::string> res;
+	int len = key.size();
+	while (len > 0 && key[len - 1] == 0) --len;
+	if (key[len - 1] == '|') throw book_exception("keywords - empty");
 	for (int l = 0, r; l < key.size() && key[l]; l = r + 1) {
 		r = l;
 		while (r < key.size() && key[r] && key[r] != '|')
