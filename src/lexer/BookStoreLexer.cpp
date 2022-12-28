@@ -71,7 +71,7 @@ static int check_quantity(std::string const &str) {
 
 static double check_price_cost(std::string const &str) {
 	if (str.length() > 13) throw book_exception("string is too long");
-	if (str.front() == '.' && str.back() == '.') throw book_exception("except number surround dot");
+	if (str.front() == '.' || str.back() == '.') throw book_exception("except number surround dot");
 	if (str.front() == '0' && str.length() > 1 && str[1] != '.') throw book_exception("leading zero");
 	double x = 0, xi = 1;
 	bool dot = false;
