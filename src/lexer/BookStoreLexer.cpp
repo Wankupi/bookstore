@@ -2,15 +2,12 @@
 #include <cctype>
 
 static std::vector<std::string> splitCommand(std::string &&cmd) {
+	for (char c : cmd) if (c != ' ' && isspace(c)) throw param_exception();
 	std::vector<std::string> r;
-//	if (cmd.empty()) return r;
-//	char front = cmd.front();
 	std::istringstream is(std::move(cmd));
 	std::string t;
 	while (is >> t)
 		r.emplace_back(std::move(t));
-//	if (!r.empty() && isspace(front))
-//		throw param_exception();
 	return r;
 }
 
