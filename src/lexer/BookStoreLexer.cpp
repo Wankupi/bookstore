@@ -3,14 +3,14 @@
 
 static std::vector<std::string> splitCommand(std::string &&cmd) {
 	std::vector<std::string> r;
-	if (cmd.empty()) return r;
-	char front = cmd.front();
+//	if (cmd.empty()) return r;
+//	char front = cmd.front();
 	std::istringstream is(std::move(cmd));
 	std::string t;
 	while (is >> t)
 		r.emplace_back(std::move(t));
-	if (!r.empty() && isspace(front))
-		throw param_exception();
+//	if (!r.empty() && isspace(front))
+//		throw param_exception();
 	return r;
 }
 
