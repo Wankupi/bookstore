@@ -3,10 +3,14 @@
 
 static std::vector<std::string> splitCommand(std::string &&cmd) {
 	std::vector<std::string> r;
+	if (cmd.empty()) return r;
+	char front = cmd.front();
 	std::istringstream is(std::move(cmd));
 	std::string t;
 	while (is >> t)
 		r.emplace_back(std::move(t));
+	if (!r.empty() && isspace(front))
+		throw param_exception();
 	return r;
 }
 
@@ -265,7 +269,7 @@ void BookStoreLexer::func_import(const std::vector<std::string> &argv) {
 		int count = check_quantity(argv[2]);
 		if (count == 0) std::cout << std::endl;
 		else {
-			res = store.show_finance(std::stoi(argv[2]));
+			res = store.show_finance(count);
 			std::cout << "+ " << res.first << " - " << res.second << std::endl;
 		}
 	}
