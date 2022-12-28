@@ -2,7 +2,8 @@
 #include <cctype>
 
 static std::vector<std::string> splitCommand(std::string &&cmd) {
-	for (char c : cmd) if (c != ' ' && !isprint(c)) throw param_exception();
+	for (char c : cmd)
+		if (c != ' ' && !isprint(c)) throw param_exception();
 	std::vector<std::string> r;
 	std::istringstream is(std::move(cmd));
 	std::string t;
@@ -124,8 +125,7 @@ int BookStoreLexer::processLine(std::string cmd) {
 		return 1;
 	}
 	else if (argv[0] == "log") func_log(argv);
-	else
-		throw param_exception();
+	else throw param_exception();
 	return 0;
 }
 
@@ -259,7 +259,7 @@ void BookStoreLexer::func_import(const std::vector<std::string> &argv) {
 	store.Import(check_quantity(argv[1]), check_price_cost(argv[2]));
 }
 
- void BookStoreLexer::func_show_finance(const std::vector<std::string> &argv) {
+void BookStoreLexer::func_show_finance(const std::vector<std::string> &argv) {
 	if (argv.size() > 3) throw param_exception();
 	std::pair<double, double> res;
 	if (argv.size() == 3) {
@@ -276,5 +276,5 @@ void BookStoreLexer::func_import(const std::vector<std::string> &argv) {
 	}
 }
 
- void BookStoreLexer::func_log(const std::vector<std::string> &argv) {
- }
+void BookStoreLexer::func_log(const std::vector<std::string> &argv) {
+}

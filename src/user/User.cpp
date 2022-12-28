@@ -40,7 +40,8 @@ int Users::passwd(const String<30> &UserId, const String<30> &cur_pwd, const Str
 	if (v.empty()) return 0;
 	int id = v[0];
 	User user = db.read(id);
-	if (cur_privilege == Privilege::admin || cur_pwd == user.password) {
+	bool isPassword = !cur_pwd.allzero();
+	if ((isPassword && cur_pwd == user.password) || (!isPassword && cur_privilege == Privilege::admin)) {
 		if (new_pwd != cur_pwd) {
 			user.password = new_pwd;
 			db.write(id, user);
