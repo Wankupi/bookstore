@@ -2,7 +2,7 @@
 #include <cctype>
 
 static std::vector<std::string> splitCommand(std::string &&cmd) {
-	for (char c : cmd) if (c != ' ' && isspace(c)) throw param_exception();
+	for (char c : cmd) if (c != ' ' && !isprint(c)) throw param_exception();
 	std::vector<std::string> r;
 	std::istringstream is(std::move(cmd));
 	std::string t;
@@ -22,7 +22,7 @@ static void check_userid_password(std::string const &str) {
 static void check_username(std::string const &str) {
 	if (str.length() > 30) throw book_exception("string is too long");
 	for (auto c : str)
-		if (isspace(c))
+		if (!isprint(c))
 			throw book_exception("string contain space characters");
 }
 
@@ -46,7 +46,7 @@ static void remove_quote(std::string &s) {
 static void check_ISBN(std::string const &str) {
 	if (str.length() > 20) throw book_exception("string is too long");
 	for (auto c : str)
-		if (isspace(c))
+		if (!isprint(c))
 			throw book_exception("string contain space characters");
 }
 
@@ -54,7 +54,7 @@ static void check_name_author_keyword(std::string const &str) {
 	if (str.empty()) throw book_exception("empty string");
 	if (str.length() > 60) throw book_exception("string is too long");
 	for (auto c : str)
-		if (isspace(c) || c == '\"')
+		if (!isprint(c) || c == '\"')
 			throw book_exception("string contain space characters");
 }
 
