@@ -10,7 +10,10 @@ set(src_files
         src/finance/Finance.cpp
         src/store/StoreBranch.cpp
         src/lexer/BookStoreLexer.cpp
+        src/WebSocket/WebSocket.cpp
         src/main.cpp
         )
+
+link_libraries(ssl crypto)
 
 add_executable(code ${src_files})
