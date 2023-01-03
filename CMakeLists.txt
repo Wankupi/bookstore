@@ -14,6 +14,5 @@ set(src_files
         src/main.cpp
         )
 
-link_libraries(ssl crypto)
-
 add_executable(code ${src_files})
+target_link_libraries(code ssl crypto)
